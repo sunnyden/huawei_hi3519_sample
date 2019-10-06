@@ -1,0 +1,89 @@
+# Hisilicon Hi35xx sample Makefile.param
+
+ifeq ($(PARAM_FILE), )
+     PARAM_FILE:=../../Makefile.param
+     include $(PARAM_FILE)
+endif
+
+################# select sensor type for your sample ###############################
+####    SONY_IMX290_MIPI_2M_30FPS_12BIT            #################
+####    SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT      #################
+####    SONY_IMX334_MIPI_8M_30FPS_12BIT            #################
+####    NVP6324_MIPI_2M_30FPS_8BIT                 #################
+
+SENSOR0_TYPE ?= SONY_IMX334_MIPI_8M_30FPS_12BIT
+SENSOR1_TYPE ?= SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT
+SENSOR2_TYPE ?= SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT
+SENSOR3_TYPE ?= SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT
+SENSOR4_TYPE ?= SONY_IMX334_MIPI_8M_30FPS_12BIT
+
+SENSOR_LIBS := $(REL_LIB)/lib_hiae.a
+SENSOR_LIBS += $(REL_LIB)/libisp.a
+SENSOR_LIBS += $(REL_LIB)/lib_hidehaze.a
+SENSOR_LIBS += $(REL_LIB)/lib_hidrc.a
+SENSOR_LIBS += $(REL_LIB)/lib_hildci.a
+SENSOR_LIBS += $(REL_LIB)/lib_hiawb.a
+
+SENSOR_LIBS += $(REL_LIB)/libsns_imx290.a
+SENSOR_LIBS += $(REL_LIB)/libsns_imx290_slave.a
+SENSOR_LIBS += $(REL_LIB)/libsns_imx334.a
+
+MPI_LIBS := $(REL_LIB)/libmpi.a
+
+COMMON_DIR ?= $(PWD)/../common
+AUDIO_ADP_DIR ?= $(PWD)/../audio/adp
+
+INC_FLAGS := -I$(REL_INC)
+
+ISP_VERSION := ISP_V2
+
+CFLAGS += -Wall -g $(INC_FLAGS) -D$(HIARCH) -D$(HI_FPGA) -lpthread -lm -ldl -D$(ISP_VERSION)
+CFLAGS += -lstdc++
+CFLAGS += $(LIBS_CFLAGS)
+CFLAGS += $(MPP_CFLAGS)
+CFLAGS += -DSENSOR0_TYPE=$(SENSOR0_TYPE)
+CFLAGS += -DSENSOR1_TYPE=$(SENSOR1_TYPE)
+CFLAGS += -DSENSOR2_TYPE=$(SENSOR2_TYPE)
+CFLAGS += -DSENSOR3_TYPE=$(SENSOR3_TYPE)
+CFLAGS += -DSENSOR4_TYPE=$(SENSOR4_TYPE)
+
+################ select audio codec type for your sample ################
+ACODEC_TYPE ?= ACODEC_TYPE_INNER
+#external acodec
+#ACODEC_TYPE ?= ACODEC_TYPE_TLV320AIC31
+INNER_HDMI ?= y
+
+ifeq ($(ACODEC_TYPE), ACODEC_TYPE_INNER)
+	CFLAGS += -DHI_ACODEC_TYPE_INNER
+endif
+
+ifeq ($(ACODEC_TYPE), ACODEC_TYPE_TLV320AIC31)
+	CFLAGS += -DHI_ACODEC_TYPE_TLV320AIC31
+endif
+
+ifeq ($(INNER_HDMI), y)
+	CFLAGS += -DHI_ACODEC_TYPE_HDMI
+endif
+
+#########################################################################
+COMM_SRC := $(wildcard $(COMMON_DIR)/*.c)
+COMM_OBJ := $(COMM_SRC:%.c=%.o)
+COMM_INC := -I$(COMMON_DIR)
+COMM_INC += -I$(AUDIO_ADP_DIR)
+
+MEDIA_MSG_CLIENT_SRC := $(wildcard $(COMMON_DIR)/media_msg/client/*.c)
+MEDIA_MSG_CLIENT_OBJ := $(MEDIA_MSG_CLIENT_SRC:%.c=%.o)
+
+MEDIA_MSG_SERVER_SRC := $(wildcard $(COMMON_DIR)/media_msg/server/*.c)
+MEDIA_MSG_SERVER_OBJ := $(MEDIA_MSG_SERVER_SRC:%.c=%.o)
+
+MEDIA_MSG_INC := -I$(COMMON_DIR)/media_msg/include
+MEDIA_MSG_INC += -I$(SDK_PATH)/hisyslink/ipcmsg/include
+MEDIA_MSG_INC += -I$(SDK_PATH)/hisyslink/datafifo/include
+
+#########################################################################
+LITEOS_BIN_SUPPORT_VI := y
+
+ifeq ($(LITEOS_BIN_SUPPORT_VI), y)
+
+endif
